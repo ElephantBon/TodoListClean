@@ -71,7 +71,7 @@ ILRepack NuGet packages on the first build; if it doesn't, right-click the solut
    If Documents is in OneDrive, change `ModFolder` as the comment says.
 2. Double-click **`TodoListClean.sln`** in Visual Studio 2022.
 3. **Build → Rebuild Solution**. Debug or Release both work.
-4. The Output window ends with `TodoListClean installed to ...\mods\Local\DEV_TodoListClean`.
+4. The Output window ends with `TodoListClean installed to ...\mods\Local\TodoListClean`.
 5. Start the game, open **Mods**, enable **Todo List Clean**, restart.
 
 If `GameFolder` is wrong, the build stops with one error naming the folder it looked in.

@@ -3,7 +3,7 @@
   <!--
     Visual Studio 2022: open TodoListClean.sln, Build > Rebuild Solution.
     Paths: Directory.Build.props (GameFolder / ModFolder).
-    Output: <ModFolder>\DEV_TodoListClean\ (TodoListClean.dll with PLib merged in, mod.yaml, mod_info.yaml)
+    Output: <ModFolder>\TodoListClean\ (TodoListClean.dll with PLib merged in, mod.yaml, mod_info.yaml)
     NuGet packages (PLib, ILRepack) restore automatically on the first build.
   -->
 
@@ -15,7 +15,7 @@
     <Version>1.0.0</Version>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies> <!-- puts PLib.dll next to the build for merging -->
-    <InstallFolder>$(ModFolder)\DEV_TodoListClean</InstallFolder>
+    <InstallFolder>$(ModFolder)\TodoListClean</InstallFolder>
   </PropertyGroup>
 
   <!-- Game references (never copied to output) -->

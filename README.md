@@ -33,9 +33,31 @@ Settings view (gear pressed):
   **Options** button in the main-menu Mods screen. It is saved to `config.json` in the
   mod folder and applied when you load a colony.
 - Text uses the same font as the game's Diagnostics panel.
-- Tasks are stored inside the colony save, so they follow the save (including Steam Cloud)
-  and are kept whenever the game saves. Removing the mod is safe: the game skips the unknown
-  data when loading.
+
+## How tasks are saved
+
+Tasks live **inside the colony save file**, the same way buildings and duplicants do. The
+mod writes no separate files for tasks.
+
+- **They're saved when the game saves**, whether you save manually or it autosaves. If you
+  quit without saving, task changes since the last save are lost, just like the rest of
+  the colony.
+- **Each save has its own list.** Loading an older save or autosave shows the tasks as they
+  were at that point.
+- **They follow the save to other machines.** Steam Cloud and save files you copy yourself
+  both carry the tasks with them. You don't need to copy the mod folder.
+- **Removing the mod is safe.** When the game loads a save and finds data from a mod that
+  isn't installed, it skips that data, logs a warning in `Player.log` and loads everything
+  else normally. The tasks are dropped the next time you save. If you turn the mod back on
+  before saving, they're still there.
+- **Under the hood:** a small component (`TodoStorage`) is attached to the game's
+  `SaveGame` object. It holds the task list (text, camera position, zoom, asteroid) as one
+  JSON string, which the game writes into the save with everything else.
+
+Older versions also wrote `tasks\<colony name>.json` into the mod folder. The current
+version ignores that folder, so you can delete it. If you're updating from an older
+version, first load each colony once **with the old version** and save it. That way any
+tasks that were only in those files end up in the save.
 
 ## Build in Visual Studio (Windows)
 
@@ -85,7 +107,7 @@ TodoListClean.csproj
 src/Mod.cs          UserMod2 entry, PLib options registration, Harmony patches
 src/TodoOptions.cs  Options screen fields (config.json)
 Directory.Build.targets  merges PLib.dll into the mod DLL
-src/TodoStorage.cs  task model, saved as JSON in the save file
+src/TodoStorage.cs  task model, stored inside the colony save (see "How tasks are saved")
 src/TodoScreen.cs   the panel (header, rows, settings mode, actions)
 src/UIKit.cs        uGUI/TMP builder, game-font lookup, pixel icons
 ```

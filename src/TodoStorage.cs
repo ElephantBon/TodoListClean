@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using KSerialization;
 using Newtonsoft.Json;
 
@@ -17,14 +16,11 @@ namespace TodoListClean
     }
 
     /// <summary>
-    /// Task storage.
+    /// Task storage, kept inside the colony save (this component lives on the SaveGame object).
+    /// Tasks are saved whenever the game saves, so they follow the save everywhere (e.g. Steam
+    /// Cloud) and match the point in time of whichever save you load.
     ///
-    /// Primary: tasks\&lt;colony name&gt;.json in the mod folder, written immediately on every
-    /// change. Tasks survive even if you quit without saving or reload an older autosave.
-    ///
-    /// Secondary: a copy inside the colony save (this component lives on the SaveGame object).
-    /// It is only used when no JSON file exists yet, e.g. the first load after updating the
-    /// mod, or a save copied from another PC.
+    /// Removing the mod is safe: the game skips this unknown component when loading.
     /// </summary>
     [SerializationConfig(KSerialization.MemberSerialization.OptIn)]
     public sealed class TodoStorage : KMonoBehaviour
@@ -53,7 +49,7 @@ namespace TodoListClean
         protected override void OnSpawn()
         {
             base.OnSpawn();
-            Load(); // payload has been deserialized and the colony name is known by now
+            Load(); // payload has been deserialized by now
         }
 
         protected override void OnCleanUp()
@@ -62,59 +58,24 @@ namespace TodoListClean
             base.OnCleanUp();
         }
 
-        // ------------------------------------------------------------------ file location
-
-        private static string FilePath
-        {
-            get
-            {
-                string dir = TodoListCleanMod.ModPath;
-                if (string.IsNullOrEmpty(dir)) return null;
-                string colony = null;
-                try { colony = SaveGame.Instance != null ? SaveGame.Instance.BaseName : null; }
-                catch { colony = null; }
-                if (string.IsNullOrEmpty(colony)) colony = "default";
-                foreach (char c in Path.GetInvalidFileNameChars()) colony = colony.Replace(c, '_');
-                return Path.Combine(Path.Combine(dir, "tasks"), colony + ".json");
-            }
-        }
-
-        // ------------------------------------------------------------------ load / save
-
         private void Load()
         {
             items = null;
-            string path = FilePath;
-
-            if (path != null && File.Exists(path))
+            if (!string.IsNullOrEmpty(payload))
             {
-                items = Parse(File.ReadAllText(path), path);
-                if (items != null)
+                try
                 {
-                    Debug.Log("[TodoListClean] loaded " + items.Count + " tasks from " + path);
-                    return;
+                    items = JsonConvert.DeserializeObject<List<TodoItem>>(payload);
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogWarning("[TodoListClean] could not read tasks from save: " + ex.Message);
                 }
             }
-
-            if (!string.IsNullOrEmpty(payload)) items = Parse(payload, "save file");
             if (items == null) items = new List<TodoItem>();
-            if (items.Count > 0) WriteFile(); // migrate tasks that only existed in the save
         }
 
-        private static List<TodoItem> Parse(string json, string source)
-        {
-            try
-            {
-                return JsonConvert.DeserializeObject<List<TodoItem>>(json);
-            }
-            catch (Exception ex)
-            {
-                Debug.LogWarning("[TodoListClean] could not read tasks from " + source + ": " + ex.Message);
-                return null;
-            }
-        }
-
-        /// <summary>Call after every change: writes the JSON file now and updates the in-save copy.</summary>
+        /// <summary>Call after every change: updates the copy written into the next game save.</summary>
         public void Save()
         {
             try
@@ -124,28 +85,6 @@ namespace TodoListClean
             catch (Exception ex)
             {
                 Debug.LogWarning("[TodoListClean] could not serialize tasks: " + ex.Message);
-                return;
-            }
-            WriteFile();
-        }
-
-        private void WriteFile()
-        {
-            string path = FilePath;
-            if (path == null) return;
-            try
-            {
-                if (string.IsNullOrEmpty(payload) && items != null)
-                    payload = JsonConvert.SerializeObject(items);
-                Directory.CreateDirectory(Path.GetDirectoryName(path));
-                string tmp = path + ".tmp";
-                File.WriteAllText(tmp, payload);
-                if (File.Exists(path)) File.Delete(path);
-                File.Move(tmp, path); // never leaves a half-written file behind
-            }
-            catch (Exception ex)
-            {
-                Debug.LogWarning("[TodoListClean] could not write " + path + ": " + ex.Message);
             }
         }
     }

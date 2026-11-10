@@ -7,12 +7,8 @@ namespace TodoListClean
 {
     public sealed class TodoListCleanMod : UserMod2
     {
-        /// <summary>The mod's install folder (where tasks\*.json are written).</summary>
-        public static string ModPath { get; private set; }
-
         public override void OnLoad(Harmony harmony)
         {
-            ModPath = path;
             base.OnLoad(harmony); // applies every [HarmonyPatch] in this assembly
             PUtil.InitLibrary(false);
             new POptions().RegisterOptions(this, typeof(TodoOptions)); // "Options" button in the Mods screen
@@ -20,7 +16,7 @@ namespace TodoListClean
         }
     }
 
-    /// <summary>Attach task storage to the SaveGame object (JSON file per colony + a copy in the save).</summary>
+    /// <summary>Attach task storage to the SaveGame object (tasks are stored in the colony save).</summary>
     [HarmonyPatch(typeof(SaveGame), "OnPrefabInit")]
     internal static class SaveGame_OnPrefabInit_Patch
     {

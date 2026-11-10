@@ -33,9 +33,9 @@ Settings view (gear pressed):
   **Options** button in the main-menu Mods screen. It is saved to `config.json` in the
   mod folder and applied when you load a colony.
 - Text uses the same font as the game's Diagnostics panel.
-- Tasks are written immediately to `tasks\<colony name>.json` in the mod folder, so they
-  survive quitting without saving or loading an older autosave. A copy is also kept inside
-  the colony save and used only when that JSON file doesn't exist yet.
+- Tasks are stored inside the colony save, so they follow the save (including Steam Cloud)
+  and are kept whenever the game saves. Removing the mod is safe: the game skips the unknown
+  data when loading.
 
 ## Build in Visual Studio (Windows)
 
